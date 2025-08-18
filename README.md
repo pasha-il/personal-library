@@ -12,8 +12,10 @@
 ## Быстрый старт
 ```
 npm install
-npm test # в проекте пока нет тестов
+npm test # запускает unit и компонентные тесты (Jest + React Testing Library)
 ```
+
+Тесты написаны с использованием Jest и React Testing Library.
 
 ## Структура
 - `src/types.ts` – типы данных.
