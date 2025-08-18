@@ -4,8 +4,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 interface Book {
+  id: string;
   title: string;
-  author: string;
+  authors: string[];
+  [key: string]: any;
 }
 
 const app = express();
@@ -39,6 +41,33 @@ app.post('/api/books', (req, res) => {
 app.get('/api/books', (_req, res) => {
   const books = readBooks();
   res.json(books);
+});
+
+app.put('/api/books/:id', (req, res) => {
+  const { id } = req.params;
+  const book: Book = req.body;
+  const books = readBooks();
+  const idx = books.findIndex((b) => b.id === id);
+  if (idx >= 0) {
+    books[idx] = book;
+    writeBooks(books);
+    res.json(book);
+  } else {
+    res.status(404).end();
+  }
+});
+
+app.delete('/api/books/:id', (req, res) => {
+  const { id } = req.params;
+  const books = readBooks();
+  const idx = books.findIndex((b) => b.id === id);
+  if (idx >= 0) {
+    const [removed] = books.splice(idx, 1);
+    writeBooks(books);
+    res.json(removed);
+  } else {
+    res.status(404).end();
+  }
 });
 
 const port = process.env.PORT || 3000;

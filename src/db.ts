@@ -12,3 +12,21 @@ class DB extends Dexie {
 }
 
 export const db = new DB();
+
+export async function updateBook(book: Book) {
+  await db.books.put(book);
+  fetch(`/api/books/${book.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(book),
+  }).catch(() => {
+    /* show toast & retry later */
+  });
+}
+
+export async function deleteBook(id: string) {
+  await db.books.delete(id);
+  fetch(`/api/books/${id}`, { method: 'DELETE' }).catch(() => {
+    /* show toast & retry later */
+  });
+}
