@@ -1,5 +1,6 @@
 import Dexie, { Table } from 'dexie';
 import { Book } from './types';
+import { notify } from './notifications';
 
 export interface PendingRequest {
   id?: number;
@@ -30,7 +31,7 @@ export async function sendOrQueue(url: string, options: RequestInit) {
     if (!res.ok) throw new Error('Network response was not ok');
   } catch {
     await db.pendingRequests.add({ url, options });
-    alert('Network error. Saved locally and will retry when online.');
+    notify('Network error. Saved locally and will retry when online.');
   }
 }
 
@@ -50,7 +51,7 @@ export async function syncPendingRequests() {
     }
   }
   if (succeeded) {
-    alert('Pending changes synced.');
+    notify('Pending changes synced.');
   }
 }
 
