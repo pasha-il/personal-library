@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Book } from './types';
+import { z } from 'zod';
 
 export function useDebounce<T>(value: T, ms = 300) {
   const [v, set] = React.useState(value);
@@ -11,15 +12,38 @@ export function useDebounce<T>(value: T, ms = 300) {
   return v;
 }
 
+const GoogleBooksResponse = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.string(),
+        volumeInfo: z.object({
+          title: z.string(),
+          authors: z.array(z.string()).optional(),
+          industryIdentifiers: z
+            .array(z.object({ type: z.string(), identifier: z.string() }))
+            .optional(),
+          publishedDate: z.string().optional(),
+          pageCount: z.number().optional(),
+          language: z.string().optional(),
+          categories: z.array(z.string()).optional(),
+          imageLinks: z.object({ thumbnail: z.string().optional() }).optional(),
+        }),
+      })
+    )
+    .optional(),
+});
+
 export async function searchGoogleBooks(q: string) {
-  const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=20`);
+  const res = await fetch(`/api/google-books?q=${encodeURIComponent(q)}`);
   if (!res.ok) throw new Error('Failed');
-  const data = await res.json();
+  const json = await res.json();
+  const data = GoogleBooksResponse.parse(json);
   return (
-    data.items?.map((v: any) => ({
+    data.items?.map((v) => ({
       external: {
         googleId: v.id,
-        isbn13: v.volumeInfo.industryIdentifiers?.find((i: any) => i.type.includes('ISBN_13'))?.identifier,
+        isbn13: v.volumeInfo.industryIdentifiers?.find((i) => i.type.includes('ISBN_13'))?.identifier,
       },
       title: v.volumeInfo.title,
       authors: v.volumeInfo.authors ?? [],
