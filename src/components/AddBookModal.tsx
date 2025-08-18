@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useDebounce, useExternalSearch } from '../hooks';
 import { Book } from '../types';
-import { db } from '../db';
+import { db, sendOrQueue } from '../db';
 
 export function AddBookModal({ onClose }: { onClose: () => void }) {
   const [q, setQ] = React.useState('');
@@ -48,11 +48,9 @@ export async function addBookOptimistically(b: Partial<Book>) {
     external: b.external,
   };
   await db.books.add(book);
-  fetch('/api/books', {
+  await sendOrQueue('/api/books', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(book),
-  }).catch(() => {
-    /* show toast & retry later */
   });
 }
