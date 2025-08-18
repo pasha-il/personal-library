@@ -1,5 +1,5 @@
 import express from 'express';
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -20,56 +20,78 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dataFile = path.join(__dirname, 'books.json');
 
-function readBooks(): Book[] {
+async function readBooks(): Promise<Book[]> {
   try {
-    const data = fs.readFileSync(dataFile, 'utf-8');
+    const data = await fs.readFile(dataFile, 'utf-8');
     return JSON.parse(data) as Book[];
+  } catch (err: any) {
+    if (err?.code === 'ENOENT') return [];
+    throw err;
+  }
+}
+
+let writeQueue = Promise.resolve();
+function writeBooks(books: Book[]): Promise<void> {
+  const writeTask = async () => {
+    await fs.writeFile(dataFile, JSON.stringify(books, null, 2));
+  };
+  writeQueue = writeQueue.then(writeTask, writeTask);
+  return writeQueue;
+}
+
+app.post('/api/books', async (req, res) => {
+  try {
+    const book: Book = req.body;
+    const books = await readBooks();
+    books.push(book);
+    await writeBooks(books);
+    res.status(201).json(book);
   } catch {
-    return [];
-  }
-}
-
-function writeBooks(books: Book[]): void {
-  fs.writeFileSync(dataFile, JSON.stringify(books, null, 2));
-}
-
-app.post('/api/books', (req, res) => {
-  const book: Book = req.body;
-  const books = readBooks();
-  books.push(book);
-  writeBooks(books);
-  res.status(201).json(book);
-});
-
-app.get('/api/books', (_req, res) => {
-  const books = readBooks();
-  res.json(books);
-});
-
-app.put('/api/books/:id', (req, res) => {
-  const { id } = req.params;
-  const book: Book = req.body;
-  const books = readBooks();
-  const idx = books.findIndex((b) => b.id === id);
-  if (idx >= 0) {
-    books[idx] = book;
-    writeBooks(books);
-    res.json(book);
-  } else {
-    res.status(404).end();
+    res.status(500).json({ error: 'Failed to add book' });
   }
 });
 
-app.delete('/api/books/:id', (req, res) => {
+app.get('/api/books', async (_req, res) => {
+  try {
+    const books = await readBooks();
+    res.json(books);
+  } catch {
+    res.status(500).json({ error: 'Failed to read books' });
+  }
+});
+
+app.put('/api/books/:id', async (req, res) => {
   const { id } = req.params;
-  const books = readBooks();
-  const idx = books.findIndex((b) => b.id === id);
-  if (idx >= 0) {
-    const [removed] = books.splice(idx, 1);
-    writeBooks(books);
-    res.json(removed);
-  } else {
-    res.status(404).end();
+  const book: Book = req.body;
+  try {
+    const books = await readBooks();
+    const idx = books.findIndex((b) => b.id === id);
+    if (idx >= 0) {
+      books[idx] = book;
+      await writeBooks(books);
+      res.json(book);
+    } else {
+      res.status(404).end();
+    }
+  } catch {
+    res.status(500).json({ error: 'Failed to update book' });
+  }
+});
+
+app.delete('/api/books/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const books = await readBooks();
+    const idx = books.findIndex((b) => b.id === id);
+    if (idx >= 0) {
+      const [removed] = books.splice(idx, 1);
+      await writeBooks(books);
+      res.json(removed);
+    } else {
+      res.status(404).end();
+    }
+  } catch {
+    res.status(500).json({ error: 'Failed to delete book' });
   }
 });
 
