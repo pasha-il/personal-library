@@ -3,6 +3,7 @@ import { FixedSizeList as List } from 'react-window';
 import { Book } from '../types';
 import { deleteBook } from '../db';
 import { EditBookModal } from './EditBookModal';
+import { openLibCover } from '../external';
 
 function BookRow({
   book,
@@ -15,8 +16,34 @@ function BookRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const [imgError, setImgError] = React.useState(false);
+  const cover = book.cover ?? openLibCover(book.external?.openLibraryId, book.external?.isbn13);
+  const showImg = cover && !imgError;
   return (
     <div style={{ ...style, display: 'flex', alignItems: 'center', gap: 8 }}>
+      {showImg ? (
+        <img
+          src={cover}
+          alt={`${book.title} cover`}
+          style={{ width: 64, height: 88, objectFit: 'cover' }}
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <div
+          style={{
+            width: 64,
+            height: 88,
+            background: '#ccc',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#666',
+            fontSize: 12,
+          }}
+        >
+          No cover
+        </div>
+      )}
       <div style={{ flex: 1 }}>
         <strong>{book.title}</strong>
         <span> by {book.authors.join(', ')}</span>

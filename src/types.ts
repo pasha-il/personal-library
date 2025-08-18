@@ -12,6 +12,7 @@ export type Book = {
   status: ReadingStatus;
   tags: string[];
   addedAt: string; // ISO
+  cover?: string;
   external?: { googleId?: string; openLibraryId?: string; isbn13?: string };
 };
 
