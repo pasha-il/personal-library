@@ -8,7 +8,11 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "start": "ts-node --esm server/index.ts",
-    "test": "jest"
+    "test": "npm run lint && npm run typecheck && jest",
+    "prepare": "husky",
+    "lint": "eslint --config .eslintrc.cjs . --ext .ts,.tsx",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -33,11 +37,24 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@types/react-window": "^1.8.8",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
     "@vitejs/plugin-react": "^5.0.0",
+    "eslint": "^8.57.1",
+    "husky": "^9.1.7",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
+    "lint-staged": "^16.1.5",
+    "prettier": "^3.6.2",
     "ts-jest": "^29.4.1",
     "typescript": "^5.9.2",
     "vite": "^5.4.19"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --max-warnings=0",
+      "prettier --write"
+    ],
+    "*.{json,md,css}": "prettier --write"
   }
 }
