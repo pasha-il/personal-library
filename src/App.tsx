@@ -2,14 +2,28 @@ import * as React from 'react';
 import { liveQuery } from 'dexie';
 
 import { db } from './db';
-import { Book } from './types';
+import { Book, FilterState } from './types';
 import { BookList } from './components/BookList';
 import { AddBookModal } from './components/AddBookModal';
+import { FilterControls } from './components/FilterControls';
+import { selectFiltered } from './filter';
 
 export default function App() {
   const [books, setBooks] = React.useState<Book[]>([]);
   const [isModalOpen, setModalOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [filter, setFilter] = React.useState<FilterState>({
+    q: '',
+    statuses: [],
+    genres: [],
+    minYear: undefined,
+    maxYear: undefined,
+    minRating: undefined,
+    tags: [],
+    language: undefined,
+    sortBy: 'title',
+    sortDir: 'asc',
+  });
 
   React.useEffect(() => {
     const sub = liveQuery(() => db.books.toArray()).subscribe({
@@ -39,10 +53,13 @@ export default function App() {
     return () => sub.unsubscribe();
   }, []);
 
+  const filteredBooks = React.useMemo(() => selectFiltered(books, filter), [books, filter]);
+
   return (
     <div>
       <button onClick={() => setModalOpen(true)}>Add a book</button>
-      <BookList books={books} />
+      <FilterControls filter={filter} setFilter={setFilter} />
+      <BookList books={filteredBooks} />
       {error && <div role="alert">{error}</div>}
       {isModalOpen && <AddBookModal onClose={() => setModalOpen(false)} />}
     </div>
