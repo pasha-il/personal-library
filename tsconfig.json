@@ -4,12 +4,14 @@
     "module": "esnext",
     "moduleResolution": "node",
     "jsx": "react-jsx",
-    "strict": false,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "esModuleInterop": true,
     "noEmit": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["jest", "@testing-library/jest-dom"]
   },
-  "include": ["src"]
+  "include": ["src", "server"]
 }

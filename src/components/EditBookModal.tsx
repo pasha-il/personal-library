@@ -24,7 +24,7 @@ export function EditBookModal({ book, onClose }: { book: Book; onClose: () => vo
       ...book,
       title,
       authors: authors.split(',').map((a) => a.trim()).filter(Boolean),
-      cover: resolvedCover,
+      ...(resolvedCover !== undefined ? { cover: resolvedCover } : {}),
     };
     await updateBook(updated);
     onClose();

@@ -8,11 +8,7 @@ const baseFilter: FilterState = {
   q: '',
   statuses: [],
   genres: [],
-  minYear: undefined,
-  maxYear: undefined,
-  minRating: undefined,
   tags: [],
-  language: undefined,
   sortBy: 'title',
   sortDir: 'asc',
 };

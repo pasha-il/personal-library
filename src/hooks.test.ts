@@ -48,7 +48,7 @@ describe('searchGoogleBooks', () => {
     global.fetch = fetchMock;
     const res = await searchGoogleBooks('foo bar');
     expect(fetchMock).toHaveBeenCalledWith('/api/google-books?q=foo%20bar');
-    expect(res[0]).toMatchObject({
+    expect(res[0]!).toMatchObject({
       title: 'Test',
       authors: ['Ann'],
       external: { googleId: '1', isbn13: '123' },
