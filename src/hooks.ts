@@ -40,19 +40,27 @@ export async function searchGoogleBooks(q: string) {
   const json = await res.json();
   const data = GoogleBooksResponse.parse(json);
   return (
-    data.items?.map((v) => ({
-      external: {
-        googleId: v.id,
-        isbn13: v.volumeInfo.industryIdentifiers?.find((i) => i.type.includes('ISBN_13'))?.identifier,
-      },
-      title: v.volumeInfo.title,
-      authors: v.volumeInfo.authors ?? [],
-      year: Number(v.volumeInfo.publishedDate?.slice(0, 4)),
-      pages: v.volumeInfo.pageCount,
-      language: v.volumeInfo.language,
-      genres: v.volumeInfo.categories ?? [],
-      cover: v.volumeInfo.imageLinks?.thumbnail,
-    })) ?? []
+    data.items?.map((v) => {
+      const isbn13 = v.volumeInfo.industryIdentifiers?.find((i) =>
+        i.type.includes('ISBN_13')
+      )?.identifier;
+      const external: Book['external'] = { googleId: v.id };
+      if (isbn13) external.isbn13 = isbn13;
+
+      const book: Partial<Book> = {
+        external,
+        title: v.volumeInfo.title,
+        authors: v.volumeInfo.authors ?? [],
+        genres: v.volumeInfo.categories ?? [],
+      };
+      const year = v.volumeInfo.publishedDate?.slice(0, 4);
+      if (year) book.year = Number(year);
+      if (v.volumeInfo.pageCount !== undefined) book.pages = v.volumeInfo.pageCount;
+      if (v.volumeInfo.language) book.language = v.volumeInfo.language;
+      const cover = v.volumeInfo.imageLinks?.thumbnail;
+      if (cover) book.cover = cover;
+      return book;
+    }) ?? []
   );
 }
 

@@ -59,15 +59,19 @@ export function BookList({ books }: { books: Book[] }) {
   return (
     <>
       <List height={600} itemCount={books.length} itemSize={88} width="100%">
-        {({ index, style }) => (
-          <BookRow
-            key={books[index].id}
-            style={style}
-            book={books[index]}
-            onEdit={() => setEditing(books[index])}
-            onDelete={() => deleteBook(books[index].id)}
-          />
-        )}
+        {({ index, style }) => {
+          const book = books[index];
+          if (!book) return null;
+          return (
+            <BookRow
+              key={book.id}
+              style={style}
+              book={book}
+              onEdit={() => setEditing(book)}
+              onDelete={() => deleteBook(book.id)}
+            />
+          );
+        }}
       </List>
       {editing && (
         <EditBookModal book={editing} onClose={() => setEditing(null)} />

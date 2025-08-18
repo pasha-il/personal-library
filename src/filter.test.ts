@@ -9,8 +9,6 @@ const books: Book[] = [
     genres: [],
     language: 'en',
     year: 2000,
-    rating: undefined,
-    pages: undefined,
     status: 'reading',
     tags: [],
     addedAt: '2020-01-01',
@@ -22,8 +20,6 @@ const books: Book[] = [
     genres: [],
     language: 'en',
     year: 1990,
-    rating: undefined,
-    pages: undefined,
     status: 'wishlist',
     tags: [],
     addedAt: '2021-01-01',
@@ -34,18 +30,14 @@ const baseFilter: FilterState = {
   q: '',
   statuses: [],
   genres: [],
-  minYear: undefined,
-  maxYear: undefined,
-  minRating: undefined,
   tags: [],
-  language: undefined,
   sortBy: 'title',
   sortDir: 'asc',
 };
 
 test('filters by query', () => {
   const res = selectFiltered(books, { ...baseFilter, q: 'alp' });
-  expect(res).toEqual([books[1]]);
+  expect(res).toEqual([books[1]!]);
 });
 
 test('sorts by year ascending', () => {
@@ -67,8 +59,6 @@ test('handles undefined numeric fields when sorting', () => {
       genres: [],
       language: 'en',
       year: 2000,
-      rating: undefined,
-      pages: undefined,
       status: 'reading',
       tags: [],
       addedAt: '2020-01-01',
@@ -81,7 +71,6 @@ test('handles undefined numeric fields when sorting', () => {
       language: 'en',
       year: 2001,
       rating: 4,
-      pages: undefined,
       status: 'reading',
       tags: [],
       addedAt: '2020-01-02',
@@ -100,8 +89,6 @@ test('handles missing authors when sorting by author', () => {
       genres: [],
       language: 'en',
       year: 2000,
-      rating: undefined,
-      pages: undefined,
       status: 'reading',
       tags: [],
       addedAt: '2020-01-01',
@@ -113,8 +100,6 @@ test('handles missing authors when sorting by author', () => {
       genres: [],
       language: 'en',
       year: 2000,
-      rating: undefined,
-      pages: undefined,
       status: 'reading',
       tags: [],
       addedAt: '2020-01-02',

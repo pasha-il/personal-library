@@ -44,7 +44,12 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
             <li key={b.external?.googleId}>
               <button
                 onClick={() =>
-                  addBookOptimistically({ ...b, cover: resolvedCover || (b as any).cover })
+                  addBookOptimistically({
+                    ...b,
+                    ...(resolvedCover || (b as any).cover
+                      ? { cover: resolvedCover || (b as any).cover }
+                      : {}),
+                  })
                 }
               >
                 Add “{b.title}”
@@ -64,15 +69,14 @@ export async function addBookOptimistically(b: Partial<Book>) {
     title: b.title!,
     authors: b.authors ?? [],
     genres: b.genres ?? [],
-    language: b.language,
-    year: b.year,
-    rating: undefined,
-    pages: b.pages,
+    ...(b.language !== undefined ? { language: b.language } : {}),
+    ...(b.year !== undefined ? { year: b.year } : {}),
+    ...(b.pages !== undefined ? { pages: b.pages } : {}),
     status: 'wishlist',
     tags: [],
     addedAt: new Date().toISOString(),
-    cover: b.cover,
-    external: b.external,
+    ...(b.cover !== undefined ? { cover: b.cover } : {}),
+    ...(b.external !== undefined ? { external: b.external } : {}),
   };
   await db.books.add(book);
   await sendOrQueue('/api/books', {
