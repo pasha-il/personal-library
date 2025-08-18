@@ -1,14 +1,21 @@
 import { Book, FilterState } from './types';
 
-type SortFields = FilterState['sortBy'];
 type SortDir = FilterState['sortDir'];
 
-function compare(a: Book, b: Book, field: SortFields, dir: SortDir): number {
+function normalize<K extends keyof Book>(b: Book, field: K): string | number {
+  const value = b[field];
+  if (field === 'authors') {
+    return b.authors[0]?.toLowerCase() ?? '';
+  }
+  if (typeof value === 'string') return value.toLowerCase();
+  if (typeof value === 'number') return value;
+  return 0;
+}
+
+function compare<K extends keyof Book>(a: Book, b: Book, field: K, dir: SortDir): number {
   const mult = dir === 'asc' ? 1 : -1;
-  let av: any = a[field as keyof Book];
-  let bv: any = b[field as keyof Book];
-  if (typeof av === 'string') av = av.toLowerCase();
-  if (typeof bv === 'string') bv = bv.toLowerCase();
+  const av = normalize(a, field);
+  const bv = normalize(b, field);
   if (av === bv) return 0;
   return av > bv ? mult : -mult;
 }
@@ -25,4 +32,8 @@ export const selectFiltered = (books: Book[], f: FilterState) =>
       (!f.maxYear || (b.year ?? 9999) <= f.maxYear) &&
       (!f.minRating || (b.rating ?? 0) >= f.minRating)
     )
-    .sort((a, b) => compare(a, b, f.sortBy, f.sortDir));
+    .sort((a, b) =>
+      f.sortBy === 'author'
+        ? compare(a, b, 'authors', f.sortDir)
+        : compare(a, b, f.sortBy, f.sortDir)
+    );
