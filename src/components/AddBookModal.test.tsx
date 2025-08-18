@@ -10,6 +10,7 @@ jest.mock('../hooks', () => ({
 
 jest.mock('../db', () => ({
   db: { books: { add: jest.fn() } },
+  sendOrQueue: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockedUseExternalSearch = useExternalSearch as unknown as jest.Mock;
