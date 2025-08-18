@@ -42,6 +42,7 @@ const books: Book[] = [
 test('renders books and handles delete', () => {
   render(<BookList books={books} />);
   expect(screen.getByText('Book One')).toBeInTheDocument();
+  expect(screen.getByText('No cover')).toBeInTheDocument();
   fireEvent.click(screen.getByText('Delete'));
   expect(deleteBook).toHaveBeenCalledWith('1');
 });

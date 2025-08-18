@@ -7,6 +7,18 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
   const [q, setQ] = React.useState('');
   const dq = useDebounce(q, 350);
   const { data: candidates = [], isFetching } = useExternalSearch(dq);
+  const [coverUrl, setCoverUrl] = React.useState('');
+  const [coverFile, setCoverFile] = React.useState<string | null>(null);
+
+  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setCoverFile(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  const resolvedCover = coverFile || coverUrl || undefined;
 
   return (
     <div role="dialog" aria-label="Add a book">
@@ -16,13 +28,27 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
         placeholder="Search title, author, or ISBN"
         aria-label="Search books"
       />
+      <label>
+        Cover URL
+        <input value={coverUrl} onChange={(e) => setCoverUrl(e.target.value)} />
+      </label>
+      <label>
+        Upload Cover
+        <input type="file" accept="image/*" onChange={onFileChange} />
+      </label>
       {isFetching ? (
         <span>Loading...</span>
       ) : (
         <ul>
           {candidates.map((b) => (
             <li key={b.external?.googleId}>
-              <button onClick={() => addBookOptimistically(b)}>Add “{b.title}”</button>
+              <button
+                onClick={() =>
+                  addBookOptimistically({ ...b, cover: resolvedCover || (b as any).cover })
+                }
+              >
+                Add “{b.title}”
+              </button>
             </li>
           ))}
         </ul>
@@ -45,6 +71,7 @@ export async function addBookOptimistically(b: Partial<Book>) {
     status: 'wishlist',
     tags: [],
     addedAt: new Date().toISOString(),
+    cover: b.cover,
     external: b.external,
   };
   await db.books.add(book);
