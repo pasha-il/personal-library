@@ -1,0 +1,32 @@
+-- CreateTable
+CREATE TABLE "User" (
+  "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  "email" TEXT NOT NULL,
+  "name" TEXT
+);
+
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+CREATE TABLE "Book" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "title" TEXT NOT NULL,
+  "userId" INTEGER,
+  FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE TABLE "Author" (
+  "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL
+);
+
+CREATE UNIQUE INDEX "Author_name_key" ON "Author"("name");
+
+CREATE TABLE "_AuthorToBook" (
+  "A" INTEGER NOT NULL,
+  "B" TEXT NOT NULL,
+  FOREIGN KEY ("A") REFERENCES "Author"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY ("B") REFERENCES "Book"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE UNIQUE INDEX "_AuthorToBook_AB_unique" ON "_AuthorToBook"("A", "B");
+CREATE INDEX "_AuthorToBook_B_index" ON "_AuthorToBook"("B");

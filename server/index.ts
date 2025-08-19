@@ -1,7 +1,5 @@
 import express from 'express';
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { PrismaClient } from '@prisma/client';
 
 interface Book {
   id: string;
@@ -16,36 +14,33 @@ app.use(express.json());
 const gbCache = new Map<string, { ts: number; data: any }>();
 const CACHE_MS = 1000 * 60 * 60; // 1 hour
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const dataFile = path.join(__dirname, 'books.json');
+const prisma = new PrismaClient();
 
-async function readBooks(): Promise<Book[]> {
-  try {
-    const data = await fs.readFile(dataFile, 'utf-8');
-    return JSON.parse(data) as Book[];
-  } catch (err: any) {
-    if (err?.code === 'ENOENT') return [];
-    throw err;
-  }
-}
-
-let writeQueue = Promise.resolve();
-function writeBooks(books: Book[]): Promise<void> {
-  const writeTask = async () => {
-    await fs.writeFile(dataFile, JSON.stringify(books, null, 2));
+function formatBook(book: any): Book {
+  return {
+    id: book.id,
+    title: book.title,
+    authors: book.authors.map((a: any) => a.name),
   };
-  writeQueue = writeQueue.then(writeTask, writeTask);
-  return writeQueue;
 }
 
 app.post('/api/books', async (req, res) => {
   try {
     const book: Book = req.body;
-    const books = await readBooks();
-    books.push(book);
-    await writeBooks(books);
-    res.status(201).json(book);
+    const created = await prisma.book.create({
+      data: {
+        id: book.id,
+        title: book.title,
+        authors: {
+          connectOrCreate: book.authors.map((name) => ({
+            where: { name },
+            create: { name },
+          })),
+        },
+      },
+      include: { authors: true },
+    });
+    res.status(201).json(formatBook(created));
   } catch {
     res.status(500).json({ error: 'Failed to add book' });
   }
@@ -53,8 +48,8 @@ app.post('/api/books', async (req, res) => {
 
 app.get('/api/books', async (_req, res) => {
   try {
-    const books = await readBooks();
-    res.json(books);
+    const books = await prisma.book.findMany({ include: { authors: true } });
+    res.json(books.map(formatBook));
   } catch {
     res.status(500).json({ error: 'Failed to read books' });
   }
@@ -64,15 +59,21 @@ app.put('/api/books/:id', async (req, res) => {
   const { id } = req.params;
   const book: Book = req.body;
   try {
-    const books = await readBooks();
-    const idx = books.findIndex((b) => b.id === id);
-    if (idx >= 0) {
-      books[idx] = book;
-      await writeBooks(books);
-      res.json(book);
-    } else {
-      res.status(404).end();
-    }
+    const updated = await prisma.book.update({
+      where: { id },
+      data: {
+        title: book.title,
+        authors: {
+          set: [],
+          connectOrCreate: book.authors.map((name) => ({
+            where: { name },
+            create: { name },
+          })),
+        },
+      },
+      include: { authors: true },
+    });
+    res.json(formatBook(updated));
   } catch {
     res.status(500).json({ error: 'Failed to update book' });
   }
@@ -81,15 +82,11 @@ app.put('/api/books/:id', async (req, res) => {
 app.delete('/api/books/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const books = await readBooks();
-    const idx = books.findIndex((b) => b.id === id);
-    if (idx >= 0) {
-      const [removed] = books.splice(idx, 1);
-      await writeBooks(books);
-      res.json(removed);
-    } else {
-      res.status(404).end();
-    }
+    const removed = await prisma.book.delete({
+      where: { id },
+      include: { authors: true },
+    });
+    res.json(formatBook(removed));
   } catch {
     res.status(500).json({ error: 'Failed to delete book' });
   }
@@ -118,4 +115,3 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
-
