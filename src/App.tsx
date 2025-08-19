@@ -27,7 +27,7 @@ export default function App() {
     });
     async function loadBooks(retries = 3): Promise<void> {
       try {
-        const res = await fetch('/api/books');
+        const res = await fetch('/api/v1/books');
         if (!res.ok) throw new Error('Network response was not ok');
         const serverBooks: Book[] = await res.json();
         for (const book of serverBooks) {
@@ -49,7 +49,10 @@ export default function App() {
     return () => sub.unsubscribe();
   }, []);
 
-  const filteredBooks = React.useMemo(() => selectFiltered(books, filter), [books, filter]);
+  const filteredBooks = React.useMemo(
+    () => selectFiltered(books, filter),
+    [books, filter],
+  );
 
   return (
     <div>
@@ -61,4 +64,3 @@ export default function App() {
     </div>
   );
 }
-

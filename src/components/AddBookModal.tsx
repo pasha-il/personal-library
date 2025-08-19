@@ -79,7 +79,7 @@ export async function addBookOptimistically(b: Partial<Book>) {
     ...(b.external !== undefined ? { external: b.external } : {}),
   };
   await db.books.add(book);
-  await sendOrQueue('/api/books', {
+  await sendOrQueue('/api/v1/books', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(book),
