@@ -28,6 +28,7 @@ router.post('/', async (req, res) => {
       data: {
         id: book.id,
         title: book.title,
+        userId: req.userId!,
         authors: {
           connectOrCreate: book.authors.map((name) => ({
             where: { name },
@@ -47,9 +48,12 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.get('/', async (_req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const books = await prisma.book.findMany({ include: { authors: true } });
+    const books = await prisma.book.findMany({
+      where: { userId: req.userId! },
+      include: { authors: true },
+    });
     res.json(books.map(formatBook));
   } catch (e) {
     res.status(500).json({
@@ -80,10 +84,20 @@ router.put('/:id', async (req, res) => {
   const book = parse.data;
   const { id } = idParse.data;
   try {
+    const existing = await prisma.book.findFirst({
+      where: { id, userId: req.userId! },
+    });
+    if (!existing) {
+      return res.status(404).json({
+        code: 'NOT_FOUND',
+        message: 'Book not found',
+      });
+    }
     const updated = await prisma.book.update({
       where: { id },
       data: {
         title: book.title,
+        userId: req.userId!,
         authors: {
           set: [],
           connectOrCreate: book.authors.map((name) => ({
@@ -115,11 +129,18 @@ router.delete('/:id', async (req, res) => {
   }
   const { id } = idParse.data;
   try {
-    const removed = await prisma.book.delete({
-      where: { id },
+    const existing = await prisma.book.findFirst({
+      where: { id, userId: req.userId! },
       include: { authors: true },
     });
-    res.json(formatBook(removed));
+    if (!existing) {
+      return res.status(404).json({
+        code: 'NOT_FOUND',
+        message: 'Book not found',
+      });
+    }
+    await prisma.book.delete({ where: { id } });
+    res.json(formatBook(existing));
   } catch (e) {
     res.status(500).json({
       code: 'INTERNAL',
