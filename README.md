@@ -3,6 +3,7 @@
 Простой прототип приложения для управления личной библиотекой на React и TypeScript.
 
 ## Возможности
+
 - Виртуализованный список книг.
 - Фильтрация и сортировка с мемоизацией.
 - Поиск с дебаунсом и загрузкой данных из Google Books API.
@@ -10,6 +11,7 @@
 - Вспомогательные утилиты для работы с обложками Open Library.
 
 ## Быстрый старт
+
 ```
 npm install
 npm test # запускает unit и компонентные тесты (Jest + React Testing Library)
@@ -17,7 +19,16 @@ npm test # запускает unit и компонентные тесты (Jest 
 
 Тесты написаны с использованием Jest и React Testing Library.
 
+## Environment variables
+
+Для работы серверной части необходимо задать несколько переменных окружения:
+
+- `DATABASE_URL` – строка подключения к базе данных.
+- `SUPABASE_URL` – URL проекта Supabase.
+- `SUPABASE_ANON_KEY` – ключ Supabase, используемый для проверки токенов.
+
 ## Структура
+
 - `src/types.ts` – типы данных.
 - `src/filter.ts` – функции фильтрации и сортировки.
 - `src/hooks.ts` – хуки `useDebounce`, `useExternalSearch` и запрос к Google Books.
