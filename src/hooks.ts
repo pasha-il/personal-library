@@ -29,20 +29,20 @@ const GoogleBooksResponse = z.object({
           categories: z.array(z.string()).optional(),
           imageLinks: z.object({ thumbnail: z.string().optional() }).optional(),
         }),
-      })
+      }),
     )
     .optional(),
 });
 
 export async function searchGoogleBooks(q: string) {
-  const res = await fetch(`/api/google-books?q=${encodeURIComponent(q)}`);
+  const res = await fetch(`/api/v1/google-books?q=${encodeURIComponent(q)}`);
   if (!res.ok) throw new Error('Failed');
   const json = await res.json();
   const data = GoogleBooksResponse.parse(json);
   return (
     data.items?.map((v) => {
       const isbn13 = v.volumeInfo.industryIdentifiers?.find((i) =>
-        i.type.includes('ISBN_13')
+        i.type.includes('ISBN_13'),
       )?.identifier;
       const external: Book['external'] = { googleId: v.id };
       if (isbn13) external.isbn13 = isbn13;
@@ -55,7 +55,8 @@ export async function searchGoogleBooks(q: string) {
       };
       const year = v.volumeInfo.publishedDate?.slice(0, 4);
       if (year) book.year = Number(year);
-      if (v.volumeInfo.pageCount !== undefined) book.pages = v.volumeInfo.pageCount;
+      if (v.volumeInfo.pageCount !== undefined)
+        book.pages = v.volumeInfo.pageCount;
       if (v.volumeInfo.language) book.language = v.volumeInfo.language;
       const cover = v.volumeInfo.imageLinks?.thumbnail;
       if (cover) book.cover = cover;

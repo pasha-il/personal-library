@@ -59,7 +59,7 @@ window.addEventListener('online', syncPendingRequests);
 
 export async function updateBook(book: Book) {
   await db.books.put(book);
-  await sendOrQueue(`/api/books/${book.id}`, {
+  await sendOrQueue(`/api/v1/books/${book.id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(book),
@@ -68,5 +68,5 @@ export async function updateBook(book: Book) {
 
 export async function deleteBook(id: string) {
   await db.books.delete(id);
-  await sendOrQueue(`/api/books/${id}`, { method: 'DELETE' });
+  await sendOrQueue(`/api/v1/books/${id}`, { method: 'DELETE' });
 }

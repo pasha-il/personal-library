@@ -8,9 +8,12 @@ jest.mock('@tanstack/react-query', () => ({ useQuery: jest.fn() }));
 describe('useDebounce', () => {
   jest.useFakeTimers();
   test('debounces updates', () => {
-    const { result, rerender } = renderHook(({ value }) => useDebounce(value, 500), {
-      initialProps: { value: 'a' },
-    });
+    const { result, rerender } = renderHook(
+      ({ value }) => useDebounce(value, 500),
+      {
+        initialProps: { value: 'a' },
+      },
+    );
     expect(result.current).toBe('a');
     rerender({ value: 'b' });
     expect(result.current).toBe('a');
@@ -47,7 +50,7 @@ describe('searchGoogleBooks', () => {
     // @ts-ignore
     global.fetch = fetchMock;
     const res = await searchGoogleBooks('foo bar');
-    expect(fetchMock).toHaveBeenCalledWith('/api/google-books?q=foo%20bar');
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/google-books?q=foo%20bar');
     expect(res[0]!).toMatchObject({
       title: 'Test',
       authors: ['Ann'],
