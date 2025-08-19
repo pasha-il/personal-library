@@ -6,7 +6,7 @@ async function main() {
   const user = await prisma.user.upsert({
     where: { email: 'test@example.com' },
     update: {},
-    create: { email: 'test@example.com', name: 'Test User' },
+    create: { id: 'seed-user-1', email: 'test@example.com', name: 'Test User' },
   });
 
   await prisma.book.upsert({
